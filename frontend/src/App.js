@@ -7,6 +7,45 @@ import SuccessNotification from './components/successNotification'
 
 import './index.css'
 
+const BlogForm = ({ handleLogout, addBlog, blogTitle, setBlogAuthor, setBlogTitle, setBlogUrl, blogAuthor, blogs, blogUrl, deleteBlog }) => {
+  return (
+  <div>
+    <h2>blogs</h2>
+
+    
+    <button onClick={handleLogout}>logout</button>
+
+    <h2>Create new</h2>
+    <form onSubmit={addBlog}>
+Title: <input 
+  type="text"
+  value={blogTitle}
+  onChange={({ target }) => setBlogTitle(target.value)} // Corrected
+/>
+<br />
+Author: <input
+  type="text"
+  value={blogAuthor}
+  onChange={({ target }) => setBlogAuthor(target.value)} // Corrected
+/>
+<br />
+URL: <input 
+  type="text"
+  value={blogUrl}
+  onChange={({ target }) => setBlogUrl(target.value)} // Corrected
+/>
+<br />
+<button type="submit">Create</button>
+</form>
+
+
+    {blogs.map(blog =>
+      <Blog key={blog.id} blog={blog} deleteBlog={deleteBlog}/>
+    )}
+  </div>
+  )
+}
+
 const App = () => {
   const [blogs, setBlogs] = useState([])
   const [blogTitle, setBlogTitle] = useState('')
@@ -122,63 +161,32 @@ const App = () => {
     setBlogUrl('')
   }
 
-  const handleTitleChange = (event) => {
-    setBlogTitle(event.target.value)
+  const deleteBlog = async (blogId) => {
+    try {
+      await blogService.remove(blogId)
+      setBlogs(blogs.filter(b => b.id !== blogId))
+      setSuccessMessage('Poisto onnistui')
+    } catch (error) {
+      setErrorMessage('Poisto epäonnistui')
+    }
   }
-
-  const handleAuthorChange = (event) => {
-    setBlogAuthor(event.target.value)
-  }
-
-  const handleUrlChange = (event) => {
-    setBlogUrl(event.target.value)
-  }
-
-  const blogForm = () => (
-    <div>
-      <h2>blogs</h2>
-
-      <p>{user.name} logged in</p>
-      <button onClick={() => handleLogout()}>logout</button>
-
-      <h2>Create new</h2>
-      <form onSubmit={addBlog}>
-        Title: <input 
-          type="text"
-          value={blogTitle}
-          onChange={handleTitleChange}
-        />
-        <br></br>
-        Author: <input
-          type="text"
-          value={blogAuthor}
-          onChange={handleAuthorChange}
-        />
-        <br></br>
-        URL: <input 
-          type="text"
-          value={blogUrl}
-          onChange={handleUrlChange}
-        />
-        <br></br>
-        <button type="submit">Create</button>
-      </form>
-
-      {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} />
-      )}
-    </div>
-  )
 
   return (
     <div>
       <ErrorNotification message={errorMessage} />
       <SuccessNotification message={successMessage} />
-      {!user && loginForm()}
-      {user && blogForm()}
-
+      
+      <BlogForm handleLogout={handleLogout} addBlog={addBlog}
+      blogTitle={blogTitle} setBlogAuthor={setBlogAuthor}
+       setBlogTitle={setBlogTitle} setBlogUrl={setBlogUrl}
+        blogAuthor={blogAuthor} blogs={blogs} blogUrl={blogUrl}
+        deleteBlog={deleteBlog}
+        />
     </div>
   )
 }
+
+//{!user && loginForm()}
+//<p>{user.name} logged in</p>
 
 export default App
