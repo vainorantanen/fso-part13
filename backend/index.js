@@ -1,4 +1,5 @@
 const express = require('express')
+require('express-async-errors')
 const app = express()
 
 const { PORT } = require('./util/config')
@@ -9,6 +10,32 @@ const blogsRouter = require('./controllers/blogs')
 app.use(express.json())
 
 app.use('/api/blogs', blogsRouter)
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+
+// olemattomien osoitteiden käsittely
+app.use(unknownEndpoint)
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === "CastError") {
+    return response.status(400).send({ error: "malformatted id" });
+  } else if (error.name === "ValidationError") {
+    return response.status(400).json({ error: "error detected" });
+  } else if (error.name === "JsonWebTokenError") {
+    return response.status(400).json({ error: "token missing or invalid" });
+  } else if (error.name === "SequelizeDatabaseError" ) {
+    return response.status(400).json({ error: "Database error" });
+  }
+
+  next(error)
+}
+
+// virheellisten pyyntöjen käsittely
+app.use(errorHandler)
 
 const start = async () => {
   await connectToDatabase()
