@@ -1,7 +1,11 @@
 const Sequelize = require('sequelize')
 const { DATABASE_URL } = require('./config')
 
-const sequelize = new Sequelize(DATABASE_URL)
+const sequelize = new Sequelize(DATABASE_URL, {
+  define: {
+    timestamps: true // Make sure timestamps is set to true
+  }}
+  )
 
 const connectToDatabase = async () => {
   try {
