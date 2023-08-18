@@ -12,6 +12,14 @@ Blog.init({
   author: {
     type: DataTypes.TEXT,
   },
+  year: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+      validate: {
+        min: 1991,
+        max: new Date().getFullYear(),
+    },
+  },
   url: {
     type: DataTypes.TEXT,
     allowNull: false
