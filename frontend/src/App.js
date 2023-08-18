@@ -6,6 +6,7 @@ import ErrorNotification from './components/errorNotification'
 import SuccessNotification from './components/successNotification'
 
 import './index.css'
+import { BlogList } from './components/BlogList'
 
 const BlogForm = ({ handleLogout, addBlog, blogTitle, setBlogAuthor, setBlogTitle, setBlogUrl, blogAuthor, blogs, blogUrl, deleteBlog }) => {
   return (
@@ -38,10 +39,6 @@ URL: <input
 <button type="submit">Create</button>
 </form>
 
-
-    {blogs.map(blog =>
-      <Blog key={blog.id} blog={blog} deleteBlog={deleteBlog}/>
-    )}
   </div>
   )
 }
@@ -180,8 +177,8 @@ const App = () => {
       blogTitle={blogTitle} setBlogAuthor={setBlogAuthor}
        setBlogTitle={setBlogTitle} setBlogUrl={setBlogUrl}
         blogAuthor={blogAuthor} blogs={blogs} blogUrl={blogUrl}
-        deleteBlog={deleteBlog}
         />
+    <BlogList blogs={blogs} deleteBlog={deleteBlog} setBlogs={setBlogs}/>
     </div>
   )
 }
