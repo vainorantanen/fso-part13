@@ -8,6 +8,8 @@ User.hasMany(Blog)
 User.belongsToMany(Blog, { through: Readlisting, as: 'markedBlogs' })
 Blog.belongsToMany(User, { through: Readlisting, as: 'usersMarked' })
 
+Blog.hasMany(Readlisting);
+
 module.exports = {
   Blog, User, Readlisting
 }

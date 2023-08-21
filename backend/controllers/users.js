@@ -1,6 +1,6 @@
 const router = require('express').Router()
 
-const { User, Blog } = require('../models')
+const { User, Blog, Readlisting } = require('../models')
 
 router.get('/', async (req, res) => {
   const users = await User.findAll({
@@ -15,6 +15,10 @@ router.get('/', async (req, res) => {
       attributes: { exclude: ['userId'] },
       through: {
         attributes: []
+      },
+      include: {
+        model: User,
+        attributes: ['name']
       }
     }
   ]
@@ -33,27 +37,51 @@ router.post('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   const user = await User.findByPk(req.params.id, {
-    attributes: { exclude: [''] } ,
-    include: [{
-      model: Blog,
-      attributes: { exclude: ['userId'] }
-    },
-    {
-      model: Blog,
-      as: 'markedBlogs',
-      attributes: { exclude: ['userId'] },
-      through: {
-        attributes: []
-      }
-    }
-  ]
-  })
+    attributes: { exclude: [''] },
+    include: [
+      {
+        model: Blog,
+        attributes: { exclude: ['userId'] },
+        include: [
+          {
+            model: Readlisting,
+            attributes: ['read', 'id'],
+            where: { userId: req.params.id }, // Filter by the user's id
+            required: false, // Use left join to include even if there's no readlisting entry
+          }
+        ]
+      },
+      {
+        model: Blog,
+        as: 'markedBlogs',
+        attributes: { exclude: ['userId'] },
+        through: {
+          attributes: []
+        },
+        include: [
+          {
+            model: User,
+            attributes: ['name']
+          },
+          {
+            model: Readlisting,
+            attributes: ['read', 'id'],
+            where: { userId: req.params.id }, // Filter by the user's id
+            required: false, // Use left join to include even if there's no readlisting entry
+          }
+        ]
+      },
+    ]
+  });
+
   if (user) {
-    res.json(user)
+    res.json(user);
   } else {
-    res.status(404).end()
+    res.status(404).end();
   }
-})
+});
+
+
 
 
 router.put('/:username', async (req, res) => {
