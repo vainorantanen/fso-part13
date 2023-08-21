@@ -36,6 +36,8 @@ router.post('/', async (req, res) => {
 })
 
 router.get('/:id', async (req, res) => {
+  const { read } = req.query;
+
   const user = await User.findByPk(req.params.id, {
     attributes: { exclude: [''] },
     include: [
@@ -69,13 +71,21 @@ router.get('/:id', async (req, res) => {
             where: { userId: req.params.id }, // Filter by the user's id
             required: false, // Use left join to include even if there's no readlisting entry
           }
-        ]
+        ],
+        
       },
     ]
   });
 
   if (user) {
-    res.json(user);
+    const userToReturn = user.toJSON()
+    if (req.query.read === 'true') {
+      userToReturn.markedBlogs = userToReturn.markedBlogs.filter(blog => blog.readlistings[0].read === true)
+    } else if (req.query.read === 'false') {
+      userToReturn.markedBlogs = userToReturn.markedBlogs.filter(blog =>  blog.readlistings[0].read === false)
+    }
+
+    res.json(userToReturn);
   } else {
     res.status(404).end();
   }
