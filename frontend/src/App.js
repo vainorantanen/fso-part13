@@ -137,7 +137,7 @@ const App = () => {
         blogAuthor={blogAuthor} blogUrl={blogUrl} year={year}
         setYear={setYear}
         />
-    <BlogList blogs={blogs} deleteBlog={deleteBlog} setBlogs={setBlogs}/>
+    <BlogList blogs={blogs} deleteBlog={deleteBlog} setBlogs={setBlogs} user={user}/>
     </div>
   )
 }
