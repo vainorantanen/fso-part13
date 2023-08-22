@@ -1,6 +1,6 @@
 const router = require('express').Router()
 
-const { Blog } = require('../models')
+const { Blog, Session } = require('../models')
 const { User } = require('../models')
 const { Op } = require('sequelize')
 
@@ -55,23 +55,56 @@ router.get('/', async (req, res) => {
   })
 
 router.post('/', tokenExtractor, async (req, res) => {
-    console.log('body', req.body)
+    
+    try {
       const user = await User.findByPk(req.decodedToken.id)
-      const blog = await Blog.create({ ...req.body, userId: user.id })
-      res.json(blog)
+
+      if (user) {
+        // get token from sessions table
+        const token = req.headers.authorization.split(' ')[1];
+        const session = await Session.findOne({
+          where: { userId: user.id, token: token },
+        });
+  
+        if (session) {
+          const blog = await Blog.create({ ...req.body, userId: user.id });
+          res.json(blog);
+        } else {
+          return res.status(401).json({ error: 'Token not found or expired' });
+        }
+      } else {
+        return res.status(404).json({ error: 'User not found' });
+      }
+    } catch (error) {
+      return res.status(400).json({ error });
+    }
   })
   
   router.delete('/:id', tokenExtractor, async (req, res) => {
       try {
-        const blog = await Blog.findByPk(req.params.id);
-        const user = await User.findByPk(req.decodedToken.id)
+          const blog = await Blog.findByPk(req.params.id);
+          const user = await User.findByPk(req.decodedToken.id)
 
-        if (blog && blog.userId === user.id) {
-          await blog.destroy();
-          return res.status(204).end();
+          if (user) {
+          // get token from sessions table
+          const token = req.headers.authorization.split(' ')[1];
+          const session = await Session.findOne({
+            where: { userId: user.id, token: token },
+          });
+          if (session) {
+            if (blog && blog.userId === user.id) {
+                await blog.destroy();
+                return res.status(204).end();
+          } else {
+            return res.status(404).json({ error: 'Blog not found' });
+          }
+          } else {
+            return res.status(401).json({ error: 'Token not found or expired' });
+          }
         } else {
-          return res.status(404).json({ error: 'Blog not found' });
+          return res.status(404).json({ error: 'User not found' });
         }
+        
       } catch (error) {
         return res.status(400).json({ error });
       }

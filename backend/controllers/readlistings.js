@@ -1,6 +1,6 @@
 const router = require('express').Router()
 
-const { User, Blog, Readlisting } = require('../models')
+const { User, Blog, Readlisting, Session } = require('../models')
 
 const jwt = require('jsonwebtoken')
 const { SECRET } = require('../util/config')
@@ -77,13 +77,27 @@ router.put('/:id', tokenExtractor, async (req, res) => {
       },
     ]
   });
- 
-    if (listing && listing.toJSON().userId === user.toJSON().id) {
-      listing.read = req.body.read === true
-      await listing.save()
-      res.json(listing)
+
+  if (user) {
+    // get token from sessions table
+    const token = req.headers.authorization.split(' ')[1];
+    const session = await Session.findOne({
+      where: { userId: user.id, token: token },
+    });
+  
+    if (session) {
+      if (listing && listing.toJSON().userId === user.toJSON().id) {
+        listing.read = req.body.read === true
+        await listing.save()
+        res.json(listing)
+      } else {
+        return res.status(404).json({ error: 'Listing not found' });
+      }
     } else {
-      return res.status(404).json({ error: 'Listing not found' });
+      return res.status(401).json({ error: 'Token not found or expired' });
+    }
+  } else {
+    return res.status(404).json({ error: 'User not found' });
     }
   } catch (error) {
     return res.status(400).json({ error });

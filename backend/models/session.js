@@ -1,11 +1,10 @@
-/*
 const { Model, DataTypes } = require('sequelize')
 
 const { sequelize } = require('../util/db')
 
-class Readlistingbelong extends Model {}
+class Session extends Model {}
 
-Readlistingbelong.init({
+Session.init({
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -16,17 +15,15 @@ Readlistingbelong.init({
     allowNull: false,
     references: { model: 'users', key: 'id' },
   },
-  readlistingId: {
-    type: DataTypes.INTEGER,
+  token: {
+    type: DataTypes.STRING,
     allowNull: false,
-    references: { model: 'readlistings', key: 'id' },
   },
 }, {
   sequelize,
   underscored: true,
   timestamps: false,
-  modelName: 'readlistingbelong'
+  modelName: 'session'
 })
 
-module.exports = Readlistingbelong
-*/
+module.exports = Session
