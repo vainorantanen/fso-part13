@@ -1,6 +1,6 @@
 import blogService from "../services/blogs"
 
-const Blog = ({blog, deleteBlog, setBlogs, blogs }) => {
+const Blog = ({blog, deleteBlog, setBlogs, blogs, user }) => {
 
   const likeBlog = async () => {
     try {

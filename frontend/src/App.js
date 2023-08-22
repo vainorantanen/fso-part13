@@ -9,7 +9,8 @@ import './index.css'
 import { BlogList } from './components/BlogList'
 import Login from './components/Login'
 
-const BlogForm = ({ handleLogout, addBlog, blogTitle, setBlogAuthor, setBlogTitle, setBlogUrl, blogAuthor, blogs, blogUrl, deleteBlog }) => {
+const BlogForm = ({ handleLogout, addBlog, blogTitle, setBlogAuthor, setBlogTitle, setBlogUrl,
+   blogAuthor,  blogUrl, year, setYear}) => {
   return (
   <div>
     <h2>blogs</h2>
@@ -37,6 +38,11 @@ URL: <input
   onChange={({ target }) => setBlogUrl(target.value)} // Corrected
 />
 <br />
+Year: <input 
+  type="number"
+  value={year}
+  onChange={({ target }) => setYear(target.value)} // Corrected
+/>
 <button type="submit">Create</button>
 </form>
 
@@ -52,6 +58,7 @@ const App = () => {
   const [user, setUser] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
+  const [ year, setYear ] = useState(2000)
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
@@ -87,7 +94,8 @@ const App = () => {
       title: blogTitle,
       author: blogAuthor,
       url: blogUrl,
-      likes : 0
+      likes : 0,
+      year: Number(year)
     }
 
     const returnedBlog = await blogService.create(blogObj)
@@ -126,9 +134,10 @@ const App = () => {
       <BlogForm handleLogout={handleLogout} addBlog={addBlog}
       blogTitle={blogTitle} setBlogAuthor={setBlogAuthor}
        setBlogTitle={setBlogTitle} setBlogUrl={setBlogUrl}
-        blogAuthor={blogAuthor} blogs={blogs} blogUrl={blogUrl}
+        blogAuthor={blogAuthor} blogUrl={blogUrl} year={year}
+        setYear={setYear}
         />
-    <BlogList blogs={blogs} deleteBlog={deleteBlog} setBlogs={setBlogs}/>
+    <BlogList blogs={blogs} deleteBlog={deleteBlog} setBlogs={setBlogs} user={user}/>
     </div>
   )
 }

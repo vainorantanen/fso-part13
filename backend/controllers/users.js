@@ -1,13 +1,27 @@
 const router = require('express').Router()
 
-const { User, Blog } = require('../models')
+const { User, Blog, Readlisting } = require('../models')
 
 router.get('/', async (req, res) => {
   const users = await User.findAll({
-    include: {
+    attributes: { exclude: [''] } ,
+    include: [{
       model: Blog,
       attributes: { exclude: ['userId'] }
+    },
+    {
+      model: Blog,
+      as: 'markedBlogs',
+      attributes: { exclude: ['userId'] },
+      through: {
+        attributes: []
+      },
+      include: {
+        model: User,
+        attributes: ['name']
+      }
     }
+  ]
   })
   res.json(users)
 })
@@ -22,13 +36,62 @@ router.post('/', async (req, res) => {
 })
 
 router.get('/:id', async (req, res) => {
-  const user = await User.findByPk(req.params.id)
+  const { read } = req.query;
+
+  const user = await User.findByPk(req.params.id, {
+    attributes: { exclude: [''] },
+    include: [
+      {
+        model: Blog,
+        attributes: { exclude: ['userId'] },
+        include: [
+          {
+            model: Readlisting,
+            attributes: ['read', 'id'],
+            where: { userId: req.params.id }, // Filter by the user's id
+            required: false, // Use left join to include even if there's no readlisting entry
+          }
+        ]
+      },
+      {
+        model: Blog,
+        as: 'markedBlogs',
+        attributes: { exclude: ['userId'] },
+        through: {
+          attributes: []
+        },
+        include: [
+          {
+            model: User,
+            attributes: ['name']
+          },
+          {
+            model: Readlisting,
+            attributes: ['read', 'id'],
+            where: { userId: req.params.id }, // Filter by the user's id
+            required: false, // Use left join to include even if there's no readlisting entry
+          }
+        ],
+        
+      },
+    ]
+  });
+
   if (user) {
-    res.json(user)
+    const userToReturn = user.toJSON()
+    if (req.query.read === 'true') {
+      userToReturn.markedBlogs = userToReturn.markedBlogs.filter(blog => blog.readlistings[0].read === true)
+    } else if (req.query.read === 'false') {
+      userToReturn.markedBlogs = userToReturn.markedBlogs.filter(blog =>  blog.readlistings[0].read === false)
+    }
+
+    res.json(userToReturn);
   } else {
-    res.status(404).end()
+    res.status(404).end();
   }
-})
+});
+
+
 
 
 router.put('/:username', async (req, res) => {
@@ -37,7 +100,6 @@ router.put('/:username', async (req, res) => {
       username: req.params.username
     }
   });
-  console.log('Lu', user)
   if (user) {
     user.username = req.body.username
     await user.save()

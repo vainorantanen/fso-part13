@@ -9,6 +9,8 @@ const blogsRouter = require('./controllers/blogs')
 const usersRouter = require('./controllers/users')
 const loginRouter = require('./controllers/login')
 const authorRouter = require('./controllers/authors')
+const readlistingsRouter = require('./controllers/readlistings')
+const logoutRouter = require('./controllers/logout')
 
 app.use(express.json())
 
@@ -16,6 +18,8 @@ app.use('/api/blogs', blogsRouter)
 app.use('/api/users', usersRouter)
 app.use('/api/login', loginRouter)
 app.use('/api/authors', authorRouter)
+app.use('/api/readinglists', readlistingsRouter)
+app.use('/api/logout', logoutRouter)
 
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
@@ -39,7 +43,14 @@ const errorHandler = (error, request, response, next) => {
   } else if (error.name === "JsonWebTokenError") {
     return response.status(400).json({ error: "token missing or invalid" });
   } else if (error.name === "SequelizeDatabaseError" ) {
-    return response.status(400).json({ error: "Database error" });
+    if (error.errors && error.errors.length > 0) {
+      const validationErrors = error.errors.map((err) => err.message);
+      return response.status(400).json({ error: validationErrors });
+    } else {
+      return response.status(400).json({ error: error.message });
+    }
+  } else if (error.name === "SequelizeValidationError") {
+    return response.status(400).json({ error: error.message });
   }
 
   next(error)
